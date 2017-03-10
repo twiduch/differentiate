@@ -1,42 +1,36 @@
 module PolynomialsDifferentiator
   class Calculator
-    attr_accessor :coef, :diff_coef
-
-    def initialize
-      self.diff_coef = []
-    end
+    attr_accessor :coef, :diff_coef #enumerators
 
     def result
       prepare_diff_coefficients
       stringify_output
     end
 
+    def data=(raw_data)
+      self.coef = raw_data.split('/').map(&:to_i).reverse[1..-1].to_enum
+    end
+
     private
 
     def prepare_diff_coefficients
-      coef.each_with_index { |coef, i| self.diff_coef << coef * i }
-      diff_coef.shift
-    end
-
-    def data=(raw_data)
-      self.coef = raw_data.split('/').map!(&:to_i).reverse
+      self.diff_coef = coef.with_index(1).map { |coef, i| coef * i }.to_enum
     end
 
     def stringify_output
-      elements = []
-      diff_coef.each_with_index do |difc, i|
+      diff_coef_components.reverse.join('+').gsub('+-','-')
+    end
+
+    def diff_coef_components
+      diff_coef.with_index.map do |difc, i|
         next if difc == 0
-        elements << "#{difc}" + exponent(i)
-      end
-      elements.reverse.join('+').gsub('+-','-')
+        difc.to_s + exponent(i)
+      end.compact
     end
 
     def exponent(i)
-      case i
-      when 0 then ''
-      when 1 then 'x'
-      else "x^#{i}"
-      end
+      return '' if i == 0
+      i > 1 ? "x^#{i}" : 'x'
     end
   end
 end
